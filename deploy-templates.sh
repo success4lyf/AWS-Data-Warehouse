@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 
 export AWS_PROFILE=project
 
@@ -6,6 +6,7 @@ function question(){
     echo "Enter 'cs' to create s3 stack"
     echo "Enter 'us' to update s3 stack"
     echo "Enter 'cl' to create lambda stack"
+    echo "Enter 'ul' to update lambda stack"
     echo "Enter 'ci' to create lambda-s3-invoke stack"
     echo "Enter 'ui' to update lambda-s3-invoke stack"
     read -p "Enter option : " input
@@ -19,6 +20,9 @@ function question(){
     elif [ $input == "cl" ]
     then
         lambdastackcreate
+    elif [ $input == "ul" ]
+    then
+        lambdastackupdate
     elif [ $input == "ci" ]
     then
         invokestackcreate
@@ -61,6 +65,17 @@ function lambdastackcreate(){
     echo "Completed!."
 }
 
+function lambdastackupdate(){
+    read -r -p "Enter a stack name to update : " stackname
+    echo "Updating..."
+    aws cloudformation update-stack \
+    --stack-name $stackname \
+    --template-url https://mainprobuck.s3.eu-west-2.amazonaws.com/templates/template2-lambda.yaml \
+    --capabilities CAPABILITY_IAM \
+    --region eu-west-2
+    echo "Completed!."
+}
+
 function invokestackcreate(){
     read -r -p "Enter a stack name to create : " stackname
     echo "Creating..."
@@ -81,6 +96,15 @@ function invokestackupdate(){
     --capabilities CAPABILITY_IAM \
     --region eu-west-2
     echo "Completed!."
+}
+
+function deploypackage(){
+    aws cloudformation create-stack \
+    --stack-name $stackname \
+    --template-url https://<bucket-name>.s3.eu-west-1.amazonaws.com/templates/template4-lambda-s3.yaml \
+    --region eu-west-2 \
+    --parameters ParameterKey=DeploymentBucket,ParameterValue=<BUCKET> ParameterKey=DeploymentPackageKey,ParameterValue=<KEY> ParameterKey=BucketName,ParameterValue=<BUCKET> \
+    --capabilities CAPABILITY_IAM
 }
 
 question
