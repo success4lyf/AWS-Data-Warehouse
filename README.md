@@ -3,4 +3,5 @@
 
 ### Create ETL lambda
 ### Modifying ETL lambda to be called by S3 event
+### Modify ETL lambda to load data into Redshift
 ### Setting up CloudFormation
