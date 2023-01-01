@@ -7,5 +7,10 @@ Resources:
     Properties:
       BucketName: firstprobuck
 
+  S3Bucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: secondprobuck
+
       
 
