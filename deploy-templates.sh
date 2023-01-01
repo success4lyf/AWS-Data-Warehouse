@@ -9,6 +9,8 @@ function question(){
     echo "Enter 'ul' to update lambda stack"
     echo "Enter 'ci' to create lambda-s3-invoke stack"
     echo "Enter 'ui' to update lambda-s3-invoke stack"
+    echo "Enter 'dp' to create deploy-lambda-package stack"
+    echo "Enter 'udp' to update deploy-lambda-package stack"
     read -p "Enter option : " input
     
     if [ $input == "cs" ]
@@ -29,6 +31,12 @@ function question(){
     elif [ $input == "ui" ]
     then
         invokestackupdate
+    elif [ $input == "dp" ]
+    then
+        deploypackage
+    elif [ $input == "udp" ]
+    then
+        deploypackageupdate
     else
         echo "No option"
     fi
@@ -99,12 +107,33 @@ function invokestackupdate(){
 }
 
 function deploypackage(){
+    read -r -p "Enter a stack name to create : " stackname
+    echo "Creating..."
     aws cloudformation create-stack \
     --stack-name $stackname \
-    --template-url https://<bucket-name>.s3.eu-west-1.amazonaws.com/templates/template4-lambda-s3.yaml \
+    --template-url https://mainprobuck.s3.eu-west-2.amazonaws.com/templates/template4-lambda-s3.yaml \
     --region eu-west-2 \
-    --parameters ParameterKey=DeploymentBucket,ParameterValue=<BUCKET> ParameterKey=DeploymentPackageKey,ParameterValue=<KEY> ParameterKey=BucketName,ParameterValue=<BUCKET> \
+    --parameters \
+    ParameterKey=DeploymentBucket,ParameterValue=mainprobuck \
+    ParameterKey=DeploymentPackageKey,ParameterValue=my-deployment-package.zip \
+    ParameterKey=BucketName,ParameterValue=deploypack \
     --capabilities CAPABILITY_IAM
+    echo "Completed!."
+}
+
+function deploypackageupdate(){
+    read -r -p "Enter a stack name to update : " stackname
+    echo "Updating..."
+    aws cloudformation update-stack \
+    --stack-name $stackname \
+    --template-url https://mainprobuck.s3.eu-west-2.amazonaws.com/templates/template4-lambda-s3.yaml \
+    --region eu-west-2 \
+    --parameters \
+    ParameterKey=DeploymentBucket,ParameterValue=mainprobuck \
+    ParameterKey=DeploymentPackageKey,ParameterValue=my-deployment-package.zip \
+    ParameterKey=BucketName,ParameterValue=deploypack \
+    --capabilities CAPABILITY_IAM
+    echo "Completed!."
 }
 
 question
