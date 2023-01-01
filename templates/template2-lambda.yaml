@@ -17,7 +17,7 @@ Resources:
           Action:
             - sts:AssumeRole
       Path: "/"
-      PermissionsBoundary: !Sub arn:aws:iam::402571105899:policy/service-role/AWSLambdaBasicExecutionRole-1f94e25c-89be-4b60-ad68-4125b3e39c30
+      PermissionsBoundary: !Sub arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
       - PolicyName: LambdaLogsPolicy
         PolicyDocument:

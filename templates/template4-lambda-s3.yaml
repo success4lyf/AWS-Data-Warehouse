@@ -27,7 +27,7 @@ Resources:
           Action:
             - sts:AssumeRole
       Path: "/"
-      PermissionsBoundary: !Sub arn:aws:iam::${AWS::AccountId}:policy/ScopePermissions
+      PermissionsBoundary: !Sub arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Policies:
@@ -46,7 +46,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Runtime: python3.9
-      Handler: index.handler
+      Handler: lambda_function.handler
       Role: !GetAtt LambdaFunctionRole.Arn
       Code:
         S3Bucket: !Ref DeploymentBucket
