@@ -10,6 +10,7 @@ LOGGER.setLevel(logging.INFO)
 s3_client = boto3.client('s3')
 s3 = boto3.resource('s3')
 bucket = s3.Bucket('etlbuck')
+bucket2 = s3.Bucket('etloadbuck')
 
 headerList = ["Timestamp of Purchase", 
                     "Store Name", 
@@ -40,14 +41,14 @@ def extract():
     print("\nSuccessfully extracted\n")
 
 def transform():
-    prefix_objs = bucket.objects.filter(Prefix="extracted/")
+    prefix_objs = bucket2.objects.filter(Prefix="extracted/")
     for obj in prefix_objs:
         b_key = obj.key
 
         response3 = s3_client.get_object(Bucket="etloadbuck", Key=b_key)
         df = pd.read_csv(response3.get("Body"))
         print('\nTransform Basket Item\n')
-        to_drop = ["Customer Name", "Card Number (Empty if Cash)", "Store Name", "Total Price", "Cash/Card"]
+        to_drop = ["Customer Name", "Card Number (Empty if Cash)", "Total Price", "Cash/Card"]
         df.drop(columns=to_drop, inplace=True)
         df['Timestamp of Purchase'] = pd.to_datetime(df['Timestamp of Purchase'])
     
@@ -55,8 +56,9 @@ def transform():
         df = df.reset_index()
         df.rename(columns = {'index':'Customer_Id'}, inplace = True)
         df = df.set_index(['Customer_Id']).astype(str).apply(lambda x:x.str.split(',').explode()).reset_index()
-        df = df.groupby(by=["Customer_Id","Basket Items (Name, Size & Price)"], as_index=False, dropna=False).count()\
-            .rename(columns={"Timestamp of Purchase": "Quantity"})
+
+        # df["Quantity"] = df.groupby(by=["Customer_Id","Basket Items (Name, Size & Price)"], as_index=False, dropna=False).count()
+        #     # .rename(columns={"Timestamp of Purchase": "Quantity"})
         
         new = df["Basket Items (Name, Size & Price)"].str.split("-", n=2, expand = True)
         df["item_size_name"]= new[0]
@@ -79,12 +81,15 @@ def transform():
         df["item_name"] = df["item_name"].str.replace('\.', '')
         df["item_name"] = df["item_name"].str.strip(' ')
         df["item_price"] = df["item_price"].str.strip(' ')
+
         df.rename(columns = {'item_name':'Item_Name'}, inplace = True)
         df.rename(columns = {'item_size':'Item_Size'}, inplace = True)
         df.rename(columns = {'item_price':'Item_Price'}, inplace = True)
         df.rename(columns = {'Customer_Id':'Transaction_Id'}, inplace = True)
         df.rename(columns = {'Timestamp of Purchase':'Transaction_Date_Time'}, inplace = True)
-        items_df = df.iloc[:, [0,4,3,2,1]]
+        df.rename(columns = {'Store Name':'Store_Name'}, inplace = True)
+        items_df = df.iloc[:, [0,1,5,4,3,2,]]
+        # print(items_df.head())
 
         with io.StringIO() as csv_buffer:
             items_df.to_csv(csv_buffer, index=False)
@@ -92,9 +97,10 @@ def transform():
     print('Successfully Uploaded Basket Item')
 
 def normalize_transaction():
-    prefix_objs = bucket.objects.filter(Prefix="extracted/")
+    prefix_objs = bucket2.objects.filter(Prefix="extracted/")
     for obj in prefix_objs:
         t_key = obj.key
+        # print(t_key)
 
         response3 = s3_client.get_object(Bucket="etloadbuck", Key=t_key)
         df = pd.read_csv(response3.get("Body"))
@@ -102,14 +108,15 @@ def normalize_transaction():
         to_drop = ["Basket Items (Name, Size & Price)", "Customer Name", "Card Number (Empty if Cash)"]
         df.drop(columns=to_drop, inplace=True)
         df['Timestamp of Purchase'] = pd.to_datetime(df['Timestamp of Purchase'])
-        df.index = np.arange(1, len(df) + 1)
-        df = df.reset_index()
-        df.rename(columns = {'index':'Transaction_Id'}, inplace = True)
+        # df.index = np.arange(1, len(df) + 1)
+        # df = df.reset_index()
+        # df.rename(columns = {'index':'Transaction_Id'}, inplace = True)
         df.rename(columns = {'Cash/Card':'Payment_Type'}, inplace = True)
         df.rename(columns = {'Store Name':'Store_Name'}, inplace = True)
         df.rename(columns = {'Timestamp of Purchase':'Transaction_Date_Time'}, inplace = True)
         df.rename(columns = {'Total Price':'Total_Price'}, inplace = True)
-        transaction_df = df.iloc[:, [0,1,2,3,4]]
+        transaction_df = df.iloc[:, [0,1,2,3]]  
+        # logging.info('dataframe head - {}'.format(transaction_df.head()))
 
         with io.StringIO() as csv_buffer:
             transaction_df.to_csv(csv_buffer, index=False)
@@ -117,7 +124,7 @@ def normalize_transaction():
     print('Successfully Uploaded Transaction')
 
 def normalize_branch_sales():
-    prefix_objs = bucket.objects.filter(Prefix="extracted/")
+    prefix_objs = bucket2.objects.filter(Prefix="extracted/")
     for obj in prefix_objs:
         s_key = obj.key
 
