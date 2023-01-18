@@ -1,5 +1,6 @@
 # AWS-Data-Warehouse
-> An implementation of ETL pipeline using AWS Resources like CloudFormation, S3 Bucket, Lambda, Redshift and others.
+> An implementation of ETL pipeline in the cloud using AWS Resources such as CloudFormation, S3 Bucket, Lambda, Redshift and others.
+### Workflow
 
 ### Setting up CloudFormation
 CloudFormation template to deploy lambda which is triggered by an S3 event was created. 
