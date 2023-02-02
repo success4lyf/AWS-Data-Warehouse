@@ -5,7 +5,7 @@
 ## Setting up CloudFormation
 CloudFormation template to deploy two lambdas which is triggered by an S3 event from two different s3 buckets for each lambda was created  
 ## ETL Process
-Once the cafe puts their csv files into the s3 bucket, the first lambda which contains the extract and transform code will be triggered to perform the extract and transformed process using python, pandas library and boto3. AWS Pandas layer was used as a layer. Onces the extract and transformed code is done, 
+Once the cafe puts their csv files into the s3 bucket, the first lambda which contains the extract and transform code will be triggered to perform the extract and transformed process using python, pandas library and boto3. AWS Pandas layer was used as a layer. Onces the extract and transformed code is done, the code uses the boto3 put_object puts the transformed file into the second s3 bucket
 
 ## Modifying ETL lambda to be called by S3 event
 ## Modify ETL lambda to load data into Redshift
